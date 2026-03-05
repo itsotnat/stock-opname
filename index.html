@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Opname</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .item-card {
+            transition: all 0.3s ease;
+        }
+
+        .item-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .checkbox-item:checked+label {
+            background: #e0e7ff;
+            border-color: #667eea;
+        }
+
+        .grup-section {
+            margin-bottom: 1rem;
+        }
+
+        .grup-header {
+            background: linear-gradient(to right, #6366f1, #8b5cf6);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .grup-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+        }
+
+        .ticket-card {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border: 2px solid #d1d5db;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stock-card {
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+
+        .stock-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateX(4px);
+        }
+
+        .sn-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sn-checkbox-item:hover {
+            background: #f3f4f6;
+        }
+
+        .sn-checkbox-item input:checked+label {
+            font-weight: 600;
+            color: #4f46e5;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+
+
+
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">📦 Stock Opname</h1>
+                    <p class="text-gray-600">by Datalogger</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-gray-500"> since 2026</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="bg-white rounded-2xl shadow-xl mb-6">
+            <div class="flex border-b overflow-x-auto">
+                <button onclick="switchTab('masuk')" id="tab-masuk"
+                    class="tab-active flex-1 py-4 px-4 font-semibold rounded-tl-2xl transition whitespace-nowrap">
+                    📥 Masuk
+                </button>
+                <button onclick="switchTab('keluar')" id="tab-keluar"
+                    class="flex-1 py-4 px-4 font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition whitespace-nowrap">
+                    📤 Keluar
+                </button>
+                <button onclick="switchTab('kembali')" id="tab-kembali"
+                    class="flex-1 py-4 px-4 font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition whitespace-nowrap">
+                    🔄 Kembali
+                </button>
+                <button onclick="switchTab('stock')" id="tab-stock"
+                    class="flex-1 py-4 px-4 font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-tr-2xl transition whitespace-nowrap">
+                    📊 Stock
+                </button>
+            </div>
+
+            <div class="p-6">
+                <!-- BARANG MASUK -->
+                <div id="content-masuk" class="tab-content">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Pilih Barang yang Masuk</h2>
+                    <div class="mb-4">
+                        <input type="text" id="search-masuk"
+                            class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
+                            placeholder="🔍 Cari barang..." oninput="filterBarang('masuk')">
+                    </div>
+                    <div id="loading-masuk" class="loading">⏳ Loading barang...</div>
+                    <div id="barang-list-masuk" class="mb-6"></div>
+                    <div id="masuk-inputs" class="space-y-4 mb-6"></div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold mb-2">Keterangan Umum (Opsional)</label>
+                        <textarea id="masuk-keterangan"
+                            class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
+                            rows="2" placeholder="Contoh: Pembelian dari supplier ABC, PO#12345"></textarea>
+                    </div>
+                    <button onclick="submitMasuk(event)"
+                        class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-4 rounded-xl hover:from-green-600 hover:to-green-700 transition shadow-lg">
+                        ✅ Submit Barang Masuk
+                    </button>
+                </div>
+
+                <!-- BARANG KELUAR -->
+                <div id="content-keluar" class="tab-content hidden">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Pilih Barang yang Keluar</h2>
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold mb-2">Nama Pengambil *</label>
+                        <select id="keluar-pengambil"
+                            class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-indigo-500 focus:outline-none">
+                            <option value="">-- Pilih Pengambil --</option>
+                            <option value="Johan">Johan</option>
+                            <option value="Ikhwan">Ikhwan</option>
+                            <option value="Hartanto">Hartanto</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <input type="text" id="search-keluar"
+                            class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
+                            placeholder="🔍 Cari barang..." oninput="filterBarang('keluar')">
+                    </div>
+                    <div id="loading-keluar" class="loading">⏳ Loading barang...</div>
+                    <div id="barang-list-keluar" class="mb-6"></div>
+                    <div id="keluar-inputs" class="space-y-4 mb-6"></div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold mb-2">Digunakan untuk apa dan kemana? *</label>
+                        <textarea id="keluar-keterangan"
+                            class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
+                            rows="3" placeholder="Contoh: Instalasi client PT ABC, lokasi Surabaya Barat"></textarea>
+                    </div>
+                    <button onclick="submitKeluar(event)"
+                        class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold py-4 rounded-xl hover:from-blue-600 hover:to-blue-700 transition shadow-lg">
+                        ✅ Submit Barang Keluar
+                    </button>
+                </div>
+
+                <!-- BARANG KEMBALI -->
+                <div id="content-kembali" class="tab-content hidden">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Barang Kembali (By Ticket)</h2>
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold mb-2">Nama Pengembalian *</label>
+                        <select id="kembali-pengembali"
+                            class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-indigo-500 focus:outline-none">
+                            <option value="">-- Pilih Pengembalian --</option>
+                            <option value="Johan">Johan</option>
+                            <option value="Ikhwan">Ikhwan</option>
+                            <option value="Hartanto">Hartanto</option>
+                        </select>
+                    </div>
+                    <div class="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6">
+                        <p class="text-sm text-yellow-800">💡 <strong>Ticketing System:</strong> Pilih ticket untuk
+                            mengembalikan semua barang dalam 1 trip.</p>
+                    </div>
+                    <div id="kembali-list" class="space-y-4 mb-6">
+                        <p class="text-gray-500 text-center py-8">⏳ Loading tickets...</p>
+                    </div>
+                </div>
+
+                <!-- CURRENT STOCK DASHBOARD -->
+                <div id="content-stock" class="tab-content hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Current Stock Dashboard</h2>
+                        <button onclick="loadStockDashboard()"
+                            class="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                    <div class="mb-4">
+                        <input type="text" id="search-stock"
+                            class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
+                            placeholder="🔍 Cari barang..." oninput="filterStockDashboard()">
+                    </div>
+                    <div id="stock-summary" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"></div>
+                    <div id="stock-dashboard" class="space-y-6"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast"
+            class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-4 rounded-xl shadow-2xl hidden transform transition-all z-50">
+            <p id="toast-message" class="font-semibold"></p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIG - API URL (hardcoded)
+        // ============================================
+        const API_URL = 'https://script.google.com/macros/s/AKfycbz77ldo29-FfCHTeTA7au314fdZ9ne3CDN49KxdgrWYLJMTsp02sKTfSyDvL1HrJsyY/exec';
+
+        // ============================================
+        // API HELPER
+        // ============================================
+        async function callApi(action, params = {}) {
+            const url = `${API_URL}?action=${action}&params=${encodeURIComponent(JSON.stringify(params))}`;
+            const response = await fetch(url);
+            return await response.json();
+        }
+
+        // ============================================
+        // STATE
+        // ============================================
+        let masterBarang = [];
+        let currentTab = 'masuk';
+        let stockDashboardData = null;
+        let variantCounters = {};
+
+        window.onload = function () {
+            loadMasterBarang();
+            checkLowStock();
+        };
+
+        // ============================================
+        // LOAD MASTER BARANG
+        // ============================================
+        async function loadMasterBarang() {
+            try {
+                const response = await callApi('getMasterBarang');
+                if (response.success) {
+                    masterBarang = response.data;
+                    renderBarangList('masuk');
+                    renderBarangList('keluar');
+                    document.getElementById('loading-masuk').style.display = 'none';
+                    document.getElementById('loading-keluar').style.display = 'none';
+                } else {
+                    showToast('❌ Error: ' + response.message, 'error');
+                }
+            } catch (error) {
+                showToast('❌ ' + error.message, 'error');
+                document.getElementById('loading-masuk').innerHTML = '❌ Gagal load data. Cek API URL.';
+                document.getElementById('loading-keluar').innerHTML = '❌ Gagal load data. Cek API URL.';
+            }
+        }
+
+        // ============================================
+        // RENDER BARANG LIST (sama seperti sebelumnya)
+        // ============================================
+        function renderBarangList(type) {
+            const container = document.getElementById(`barang-list-${type}`);
+            if (!masterBarang || masterBarang.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">Tidak ada data</p>';
+                return;
+            }
+
+            const grouped = {};
+            masterBarang.forEach(item => {
+                const grup = item.grup || 'Lainnya';
+                if (!grouped[grup]) grouped[grup] = [];
+                grouped[grup].push(item);
+            });
+
+            let html = '';
+            Object.keys(grouped).sort().forEach(grup => {
+                html += `
+                    <div class="grup-section">
+                        <div class="grup-header" onclick="toggleGrup('${type}-grup-${grup.replace(/\s/g, '')}')">
+                            <span>📁 ${grup} (${grouped[grup].length})</span>
+                            <span id="${type}-grup-${grup.replace(/\s/g, '')}-icon">▼</span>
+                        </div>
+                        <div id="${type}-grup-${grup.replace(/\s/g, '')}" class="grup-content">
+                `;
+
+                grouped[grup].forEach((item, idx) => {
+                    const id = `${type}-${grup.replace(/\s/g, '')}-${idx}`;
+                    const minStock = item.minStock || 0;
+
+                    let stockColor = 'bg-green-100 text-green-600';
+                    if (item.stock === 0) stockColor = 'bg-gray-100 text-gray-600';
+                    else if (minStock > 0 && item.stock < minStock) stockColor = 'bg-red-100 text-red-600';
+                    else if (minStock > 0 && item.stock < minStock * 2) stockColor = 'bg-yellow-100 text-yellow-600';
+
+                    const stockBadge = `<span class="text-xs ${stockColor} px-2 py-1 rounded font-semibold">Stock: ${item.stock} ${item.satuan}</span>`;
+                    const snBadge = item.wajibSN ? '<span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Wajib SN</span>' : '';
+                    const isDisabled = (type === 'keluar' && item.stock === 0) ? 'disabled' : '';
+                    const disabledClass = isDisabled ? 'opacity-50 cursor-not-allowed' : '';
+
+                    html += `
+                        <div class="item-card bg-gray-50 rounded-xl p-3 ${disabledClass}" data-name="${item.nama.toLowerCase()}" data-stock="${item.stock}">
+                            <input type="checkbox" id="${id}" class="checkbox-item hidden" onchange="toggleInput('${type}', '${id}', ${JSON.stringify(item).replace(/"/g, '&quot;')})" ${isDisabled}>
+                            <label for="${id}" class="flex flex-col cursor-pointer border-2 border-gray-300 rounded-lg p-3 h-full">
+                                <p class="font-semibold text-sm mb-2">${item.nama}</p>
+                                <div class="flex flex-col gap-1 mt-auto">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs text-gray-500">${item.kategori}</span>
+                                        ${snBadge}
+                                    </div>
+                                    ${stockBadge}
+                                    ${item.stock === 0 ? '<span class="text-xs text-red-600 font-semibold mt-1">⚠️ Out of Stock</span>' : ''}
+                                </div>
+                            </label>
+                        </div>
+                    `;
+                });
+
+                html += `</div></div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function toggleGrup(grupId) {
+            const content = document.getElementById(grupId);
+            const icon = document.getElementById(grupId + '-icon');
+            if (content.style.display === 'none') {
+                content.style.display = 'grid';
+                icon.textContent = '▼';
+            } else {
+                content.style.display = 'none';
+                icon.textContent = '▶';
+            }
+        }
+
+        function filterBarang(type) {
+            const search = document.getElementById(`search-${type}`).value.toLowerCase();
+            const items = document.querySelectorAll(`#barang-list-${type} .item-card`);
+            items.forEach(item => {
+                const name = item.getAttribute('data-name');
+                item.style.display = name.includes(search) ? 'block' : 'none';
+            });
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            ['masuk', 'keluar', 'kembali', 'stock'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.remove('tab-active');
+                document.getElementById(`tab-${t}`).classList.add('bg-gray-100', 'text-gray-700');
+                document.getElementById(`content-${t}`).classList.add('hidden');
+            });
+
+            document.getElementById(`tab-${tab}`).classList.add('tab-active');
+            document.getElementById(`tab-${tab}`).classList.remove('bg-gray-100', 'text-gray-700');
+            document.getElementById(`content-${tab}`).classList.remove('hidden');
+
+            if (tab === 'kembali') loadBarangKembali();
+            if (tab === 'stock') loadStockDashboard();
+        }
+
+        function toggleInput(type, id, barang) {
+            const checkbox = document.getElementById(id);
+            const container = document.getElementById(`${type}-inputs`);
+
+            if (checkbox.checked) {
+                const div = document.createElement('div');
+                div.id = `${type}-input-${id}`;
+                div.className = 'bg-indigo-50 border-2 border-indigo-200 rounded-xl p-4';
+
+                let fieldsHTML = `
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-semibold text-indigo-900">${barang.nama}</h4>
+                        <button type="button" onclick="addMerkVariant('${type}', '${id}', '${barang.nama}', ${barang.wajibSN})" class="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-600 transition">
+                            + Tambah Merk Lain
+                        </button>
+                    </div>
+                    <div id="${type}-variants-${id}" class="space-y-4"></div>
+                `;
+
+                div.innerHTML = fieldsHTML;
+                container.appendChild(div);
+                setTimeout(() => addMerkVariant(type, id, barang.nama, barang.wajibSN), 100);
+            } else {
+                const div = document.getElementById(`${type}-input-${id}`);
+                if (div) div.remove();
+            }
+        }
+
+        function generateSNFields(type, id, namaBarang) {
+            const qtyInput = document.getElementById(`${type}-qty-${id}`);
+            const container = document.getElementById(`${type}-sn-container-${id}`);
+            if (!qtyInput || !container) return;
+
+            const qty = parseInt(qtyInput.value) || 0;
+
+            const merkSelect = document.getElementById(`${type}-merk-${id}`);
+            const merkNew = document.getElementById(`${type}-merk-new-${id}`);
+            let merkFilled = false;
+
+            if (merkNew && !merkNew.classList.contains('hidden')) {
+                merkFilled = merkNew.value.trim() !== '';
+            } else if (merkSelect && !merkSelect.classList.contains('hidden')) {
+                merkFilled = merkSelect.value !== '';
+            }
+
+            if (!merkFilled) {
+                showToast('⚠️ Pilih atau isi Merk terlebih dahulu!', 'warning');
+                qtyInput.value = '';
+                return;
+            }
+
+            if (qty === 0) { container.innerHTML = ''; return; }
+            if (qty > 20) {
+                showToast('⚠️ Maksimal 20 pcs per input.', 'warning');
+                qtyInput.value = 20;
+                return;
+            }
+
+            let html = '<div class="border-t border-indigo-200 pt-3 mt-3"><p class="text-sm font-semibold text-indigo-900 mb-2">Serial Numbers:</p><div class="grid grid-cols-1 md:grid-cols-2 gap-2">';
+            for (let i = 1; i <= qty; i++) {
+                html += `
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-semibold text-gray-600 w-8">[${i}]</span>
+                        <input type="text" id="${type}-sn-${id}-${i}" class="flex-1 border border-gray-300 rounded-lg p-2 text-sm" placeholder="SN${String(i).padStart(3, '0')}" required>
+                    </div>
+                `;
+            }
+            html += '</div></div>';
+            container.innerHTML = html;
+        }
+
+        function addMerkVariant(type, id, namaBarang, isHardware) {
+            const variantsContainer = document.getElementById(`${type}-variants-${id}`);
+            if (!variantsContainer) return;
+
+            const counterKey = `${type}-${id}`;
+            if (!variantCounters[counterKey]) variantCounters[counterKey] = 0;
+            const variantIndex = variantCounters[counterKey]++;
+            const variantId = `${id}-v${variantIndex}`;
+
+            const variant = document.createElement('div');
+            variant.id = `${type}-variant-${variantId}`;
+            variant.className = 'bg-white border-2 border-indigo-300 rounded-lg p-3 relative';
+
+            let variantHTML = '';
+
+            if (isHardware && type === 'masuk') {
+                variantHTML = `
+                    ${variantIndex > 0 ? `<button type="button" onclick="removeMerkVariant('${type}', '${variantId}')" class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600">✕ Hapus</button>` : ''}
+                    <p class="text-xs font-semibold text-gray-500 mb-2">Merk #${variantIndex + 1}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Merk *</label>
+                            <div class="flex gap-2">
+                                <select id="${type}-merk-${variantId}" class="flex-1 border border-gray-300 rounded-lg p-2 text-sm"><option value="">Loading...</option></select>
+                                <button type="button" onclick="toggleMerkInput('${type}', '${variantId}')" class="bg-green-500 text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-green-600 transition whitespace-nowrap">+ Baru</button>
+                            </div>
+                            <input type="text" id="${type}-merk-new-${variantId}" class="hidden w-full border border-green-300 rounded-lg p-2 text-sm mt-2" placeholder="Ketik merk baru...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Quantity *</label>
+                            <input type="number" id="${type}-qty-${variantId}" class="w-full border border-gray-300 rounded-lg p-2 text-sm bg-gray-100 cursor-not-allowed" placeholder="Pilih/isi merk dulu" min="1" disabled>
+                        </div>
+                    </div>
+                    <div id="${type}-sn-container-${variantId}" class="space-y-2"></div>
+                `;
+                variant.innerHTML = variantHTML;
+                variantsContainer.appendChild(variant);
+
+                setTimeout(() => {
+                    const merkSelect = document.getElementById(`${type}-merk-${variantId}`);
+                    const merkNew = document.getElementById(`${type}-merk-new-${variantId}`);
+                    const qtyInput = document.getElementById(`${type}-qty-${variantId}`);
+
+                    if (merkSelect) merkSelect.addEventListener('change', () => enableQtyAfterMerkSelect(type, variantId));
+                    if (merkNew) merkNew.addEventListener('input', () => enableQuantityInput(type, variantId));
+                    if (qtyInput) {
+                        qtyInput.addEventListener('input', () => generateSNFields(type, variantId, namaBarang));
+                        qtyInput.addEventListener('change', () => generateSNFields(type, variantId, namaBarang));
+                    }
+                }, 100);
+
+                loadMerkDropdown(namaBarang, type, variantId);
+
+            } else if (isHardware && type === 'keluar') {
+                variantHTML = `
+                    ${variantIndex > 0 ? `<button type="button" onclick="removeMerkVariant('${type}', '${variantId}')" class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600">✕ Hapus</button>` : ''}
+                    <p class="text-xs font-semibold text-gray-500 mb-2">Merk #${variantIndex + 1}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Quantity *</label>
+                            <input type="number" id="${type}-qty-${variantId}" class="w-full border border-gray-300 rounded-lg p-2 text-sm" placeholder="0" min="1" max="20" onchange="enableMerkAfterQty('${type}', '${variantId}')">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Merk *</label>
+                            <select id="${type}-merk-${variantId}" class="w-full border border-gray-300 rounded-lg p-2 text-sm bg-gray-100 cursor-not-allowed" disabled onchange="loadSNSelectionsKeluar('${type}', '${variantId}', '${namaBarang}')">
+                                <option value="">Isi qty dulu</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="${type}-sn-selections-${variantId}" class="space-y-2"></div>
+                `;
+                variant.innerHTML = variantHTML;
+                variantsContainer.appendChild(variant);
+                loadMerkDropdown(namaBarang, type, variantId);
+                loadSerialNumbers(namaBarang, type, variantId);
+
+            } else {
+                variantHTML = `
+                    ${variantIndex > 0 ? `<button type="button" onclick="removeMerkVariant('${type}', '${variantId}')" class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600">✕ Hapus</button>` : ''}
+                    <p class="text-xs font-semibold text-gray-500 mb-2">Merk #${variantIndex + 1}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Merk *</label>
+                            <div class="flex gap-2">
+                                <select id="${type}-merk-${variantId}" class="flex-1 border border-gray-300 rounded-lg p-2 text-sm"><option value="">Loading...</option></select>
+                                <button type="button" onclick="toggleMerkInput('${type}', '${variantId}')" class="bg-green-500 text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-green-600 transition whitespace-nowrap">+ Baru</button>
+                            </div>
+                            <input type="text" id="${type}-merk-new-${variantId}" class="hidden w-full border border-green-300 rounded-lg p-2 text-sm mt-2" placeholder="Ketik merk baru...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1">Quantity *</label>
+                            <input type="number" id="${type}-qty-${variantId}" class="w-full border border-gray-300 rounded-lg p-2 text-sm" placeholder="0" min="1">
+                        </div>
+                    </div>
+                `;
+                variant.innerHTML = variantHTML;
+                variantsContainer.appendChild(variant);
+                loadMerkDropdown(namaBarang, type, variantId);
+            }
+        }
+
+        function enableMerkAfterQty(type, id) {
+            const qtyInput = document.getElementById(`${type}-qty-${id}`);
+            const merkSelect = document.getElementById(`${type}-merk-${id}`);
+            const snContainer = document.getElementById(`${type}-sn-selections-${id}`);
+            const qty = parseInt(qtyInput.value) || 0;
+
+            if (qty > 0 && qty <= 20) {
+                merkSelect.disabled = false;
+                merkSelect.classList.remove('bg-gray-100', 'cursor-not-allowed');
+                merkSelect.classList.add('bg-white');
+                const firstOption = merkSelect.options[0];
+                if (firstOption && firstOption.value === '' && firstOption.text === 'Isi qty dulu') {
+                    firstOption.text = '-- Pilih Merk --';
+                }
+            } else if (qty > 20) {
+                showToast('⚠️ Maksimal 20 pcs per input.', 'warning');
+                qtyInput.value = 20;
+                enableMerkAfterQty(type, id);
+            } else {
+                merkSelect.disabled = true;
+                merkSelect.classList.add('bg-gray-100', 'cursor-not-allowed');
+                merkSelect.classList.remove('bg-white');
+                merkSelect.value = '';
+                const firstOption = merkSelect.options[0];
+                if (firstOption && firstOption.value === '') firstOption.text = 'Isi qty dulu';
+                if (snContainer) snContainer.innerHTML = '';
+            }
+        }
+
+        function loadSNSelectionsKeluar(type, id, namaBarang) {
+            const qtyInput = document.getElementById(`${type}-qty-${id}`);
+            const merkSelect = document.getElementById(`${type}-merk-${id}`);
+            const container = document.getElementById(`${type}-sn-selections-${id}`);
+            const qty = parseInt(qtyInput.value) || 0;
+            const selectedMerk = merkSelect.value;
+
+            if (!selectedMerk || qty === 0) { container.innerHTML = ''; return; }
+
+            const allSNs = window[`allSNs_${type}_${id}`] || [];
+            const filteredSNs = allSNs.filter(sn => sn.merk === selectedMerk);
+
+            if (filteredSNs.length === 0) {
+                container.innerHTML = '<p class="text-sm text-red-500">❌ Tidak ada SN tersedia untuk merk ini</p>';
+                return;
+            }
+
+            let html = `<div class="border-t border-indigo-200 pt-3 mt-3"><p class="text-sm font-semibold text-indigo-900 mb-2">Pilih ${qty} Serial Number:</p><div class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto">`;
+            filteredSNs.forEach((sn, idx) => {
+                html += `
+                    <div class="sn-checkbox-item">
+                        <input type="checkbox" id="${type}-sn-check-${id}-${idx}" value="${sn.serialNumber}" class="sn-checkbox-${id}" onchange="validateSNSelection('${type}', '${id}', ${qty})">
+                        <label for="${type}-sn-check-${id}-${idx}" class="text-sm cursor-pointer">${sn.serialNumber}</label>
+                    </div>
+                `;
+            });
+            html += '</div></div>';
+            container.innerHTML = html;
+        }
+
+        function validateSNSelection(type, id, maxQty) {
+            const checkboxes = document.querySelectorAll(`.sn-checkbox-${id}:checked`);
+            if (checkboxes.length > maxQty) {
+                showToast(`⚠️ Maksimal ${maxQty} SN yang bisa dipilih!`, 'warning');
+                checkboxes[checkboxes.length - 1].checked = false;
+            }
+        }
+
+        function enableQuantityInput(type, id) {
+            const merkNew = document.getElementById(`${type}-merk-new-${id}`);
+            const qtyInput = document.getElementById(`${type}-qty-${id}`);
+            if (merkNew && qtyInput) {
+                const merkValue = merkNew.value.trim();
+                if (merkValue.length >= 2) {
+                    qtyInput.disabled = false;
+                    qtyInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
+                    qtyInput.placeholder = '0';
+                } else {
+                    qtyInput.disabled = true;
+                    qtyInput.classList.add('bg-gray-100', 'cursor-not-allowed');
+                    qtyInput.placeholder = 'Pilih/isi merk dulu';
+                    qtyInput.value = '';
+                    const snContainer = document.getElementById(`${type}-sn-container-${id}`);
+                    if (snContainer) snContainer.innerHTML = '';
+                }
+            }
+        }
+
+        function enableQtyAfterMerkSelect(type, id) {
+            const merkSelect = document.getElementById(`${type}-merk-${id}`);
+            const qtyInput = document.getElementById(`${type}-qty-${id}`);
+            if (merkSelect && qtyInput) {
+                if (merkSelect.value) {
+                    qtyInput.disabled = false;
+                    qtyInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
+                    qtyInput.placeholder = '0';
+                } else {
+                    qtyInput.disabled = true;
+                    qtyInput.classList.add('bg-gray-100', 'cursor-not-allowed');
+                    qtyInput.placeholder = 'Pilih/isi merk dulu';
+                    qtyInput.value = '';
+                    const snContainer = document.getElementById(`${type}-sn-container-${id}`);
+                    if (snContainer) snContainer.innerHTML = '';
+                }
+            }
+        }
+
+        function removeMerkVariant(type, variantId) {
+            const variant = document.getElementById(`${type}-variant-${variantId}`);
+            if (variant) variant.remove();
+        }
+
+        async function loadSerialNumbers(namaBarang, type, id) {
+            try {
+                const response = await callApi('getAvailableSerialNumbers', { namaBarang });
+                window[`allSNs_${type}_${id}`] = response.data || [];
+            } catch (error) {
+                console.error('Error loading SNs:', error);
+            }
+        }
+
+        async function loadMerkDropdown(namaBarang, type, id) {
+            try {
+                const response = await callApi('getAvailableMerks', { namaBarang });
+                const select = document.getElementById(`${type}-merk-${id}`);
+                if (!select) return;
+
+                if (response.success && response.data.length > 0) {
+                    select.innerHTML = '<option value="">-- Pilih Merk --</option>' +
+                        response.data.map(merk => `<option value="${merk}">${merk}</option>`).join('');
+                } else {
+                    select.innerHTML = '<option value="">-- Pilih Merk --</option>';
+                }
+            } catch (error) {
+                console.error('Error loading merks:', error);
+            }
+        }
+
+        function toggleMerkInput(type, id) {
+            const selectMerk = document.getElementById(`${type}-merk-${id}`);
+            const inputMerk = document.getElementById(`${type}-merk-new-${id}`);
+            const btn = event.target;
+
+            if (inputMerk.classList.contains('hidden')) {
+                selectMerk.classList.add('hidden');
+                inputMerk.classList.remove('hidden');
+                inputMerk.focus();
+                btn.textContent = '↩ List';
+                btn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                btn.classList.add('bg-gray-500', 'hover:bg-gray-600');
+            } else {
+                inputMerk.classList.add('hidden');
+                selectMerk.classList.remove('hidden');
+                inputMerk.value = '';
+                btn.textContent = '+ Baru';
+                btn.classList.remove('bg-gray-500', 'hover:bg-gray-600');
+                btn.classList.add('bg-green-500', 'hover:bg-green-600');
+            }
+        }
+
+        // ============================================
+        // SUBMIT BARANG MASUK
+        // ============================================
+        async function submitMasuk(event) {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Processing...';
+
+            const data = [];
+            const keterangan = document.getElementById('masuk-keterangan').value;
+            const checkboxes = document.querySelectorAll('#barang-list-masuk input[type="checkbox"]:checked');
+
+            for (let checkbox of checkboxes) {
+                const id = checkbox.id;
+                const label = checkbox.nextElementSibling;
+                const namaBarang = label.querySelector('p').textContent;
+                const kategori = label.querySelector('.text-gray-500').textContent;
+
+                const itemData = masterBarang.find(item => item.nama === namaBarang);
+                const isHardware = itemData ? itemData.wajibSN : false;
+
+                const variantsContainer = document.getElementById(`masuk-variants-${id}`);
+                if (!variantsContainer) continue;
+
+                const variants = variantsContainer.querySelectorAll('[id^="masuk-variant-"]');
+
+                for (let variant of variants) {
+                    const variantId = variant.id.replace('masuk-variant-', '');
+                    const merkSelect = document.getElementById(`masuk-merk-${variantId}`);
+                    const merkNew = document.getElementById(`masuk-merk-new-${variantId}`);
+                    let merk = '';
+
+                    if (merkNew && !merkNew.classList.contains('hidden') && merkNew.value) {
+                        merk = merkNew.value.trim();
+                    } else if (merkSelect && !merkSelect.classList.contains('hidden')) {
+                        merk = merkSelect.value;
+                    }
+
+                    const qty = parseInt(document.getElementById(`masuk-qty-${variantId}`)?.value) || 0;
+
+                    if (!merk || !qty) {
+                        btn.disabled = false;
+                        btn.innerHTML = '✅ Submit Barang Masuk';
+                        showToast(`❌ Mohon isi Merk dan Quantity untuk: ${namaBarang}`, 'error');
+                        return;
+                    }
+
+                    if (isHardware) {
+                        const serialNumbers = [];
+                        for (let i = 1; i <= qty; i++) {
+                            const snInput = document.getElementById(`masuk-sn-${variantId}-${i}`);
+                            if (!snInput || !snInput.value.trim()) {
+                                btn.disabled = false;
+                                btn.innerHTML = '✅ Submit Barang Masuk';
+                                showToast(`❌ Mohon isi Serial Number [${i}] untuk ${namaBarang} (${merk})!`, 'error');
+                                return;
+                            }
+                            serialNumbers.push(snInput.value.trim());
+                        }
+
+                        const uniqueSNs = new Set(serialNumbers);
+                        if (uniqueSNs.size !== serialNumbers.length) {
+                            btn.disabled = false;
+                            btn.innerHTML = '✅ Submit Barang Masuk';
+                            showToast('❌ Serial Number tidak boleh duplikat!', 'error');
+                            return;
+                        }
+
+                        serialNumbers.forEach(sn => {
+                            data.push({ namaBarang, kategori, merk, serialNumber: sn, quantity: 1, keterangan });
+                        });
+                    } else {
+                        data.push({ namaBarang, kategori, merk, serialNumber: '-', quantity: qty, keterangan });
+                    }
+                }
+            }
+
+            if (data.length === 0) {
+                btn.disabled = false;
+                btn.innerHTML = '✅ Submit Barang Masuk';
+                showToast('❌ Pilih minimal 1 barang!', 'error');
+                return;
+            }
+
+            try {
+                const response = await callApi('saveBarangMasuk', { data });
+                btn.disabled = false;
+                btn.innerHTML = '✅ Submit Barang Masuk';
+
+                if (response.success) {
+                    showToast(`✅ Berhasil input ${data.length} item!`, 'success');
+                    await loadMasterBarang();
+                    checkboxes.forEach(cb => cb.checked = false);
+                    document.getElementById('masuk-inputs').innerHTML = '';
+                    document.getElementById('masuk-keterangan').value = '';
+                    variantCounters = {};
+                } else {
+                    showToast('❌ ' + response.message, 'error');
+                }
+            } catch (error) {
+                btn.disabled = false;
+                btn.innerHTML = '✅ Submit Barang Masuk';
+                showToast('❌ ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // SUBMIT BARANG KELUAR
+        // ============================================
+        async function submitKeluar(event) {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Processing...';
+
+            const pengambil = document.getElementById('keluar-pengambil').value;
+            const keterangan = document.getElementById('keluar-keterangan').value;
+
+            if (!pengambil || !keterangan) {
+                btn.disabled = false;
+                btn.innerHTML = '✅ Submit Barang Keluar';
+                showToast('❌ Isi pengambil dan keterangan!', 'error');
+                return;
+            }
+
+            const data = [];
+            const checkboxes = document.querySelectorAll('#barang-list-keluar input[type="checkbox"]:checked');
+
+            for (let checkbox of checkboxes) {
+                const id = checkbox.id;
+                const label = checkbox.nextElementSibling;
+                const namaBarang = label.querySelector('p').textContent;
+                const kategori = label.querySelector('.text-gray-500').textContent;
+
+                const itemData = masterBarang.find(item => item.nama === namaBarang);
+                const isHardware = itemData ? itemData.wajibSN : false;
+
+                const variantsContainer = document.getElementById(`keluar-variants-${id}`);
+                if (!variantsContainer) continue;
+
+                const variants = variantsContainer.querySelectorAll('[id^="keluar-variant-"]');
+
+                for (let variant of variants) {
+                    const variantId = variant.id.replace('keluar-variant-', '');
+                    const qty = parseInt(document.getElementById(`keluar-qty-${variantId}`)?.value) || 0;
+
+                    const merkSelect = document.getElementById(`keluar-merk-${variantId}`);
+                    const merkNew = document.getElementById(`keluar-merk-new-${variantId}`);
+                    let merk = '';
+
+                    if (merkNew && !merkNew.classList.contains('hidden') && merkNew.value) {
+                        merk = merkNew.value.trim();
+                    } else if (merkSelect) {
+                        merk = merkSelect.value;
+                    }
+
+                    if (!qty || !merk) {
+                        btn.disabled = false;
+                        btn.innerHTML = '✅ Submit Barang Keluar';
+                        showToast(`❌ Mohon isi Quantity dan Merk untuk: ${namaBarang}`, 'error');
+                        return;
+                    }
+
+                    if (isHardware) {
+                        const selectedSNs = [];
+                        document.querySelectorAll(`.sn-checkbox-${variantId}:checked`).forEach(cb => {
+                            selectedSNs.push(cb.value);
+                        });
+
+                        if (selectedSNs.length !== qty) {
+                            btn.disabled = false;
+                            btn.innerHTML = '✅ Submit Barang Keluar';
+                            showToast(`❌ Pilih ${qty} Serial Number untuk ${namaBarang}!`, 'error');
+                            return;
+                        }
+
+                        selectedSNs.forEach(sn => {
+                            data.push({ namaBarang, kategori, merk, serialNumber: sn, quantity: 1 });
+                        });
+                    } else {
+                        data.push({ namaBarang, kategori, merk, serialNumber: '-', quantity: qty });
+                    }
+                }
+            }
+
+            if (data.length === 0) {
+                btn.disabled = false;
+                btn.innerHTML = '✅ Submit Barang Keluar';
+                showToast('❌ Pilih minimal 1 barang!', 'error');
+                return;
+            }
+
+            try {
+                const response = await callApi('saveBarangKeluar', { data, pengambil, keterangan });
+                btn.disabled = false;
+                btn.innerHTML = '✅ Submit Barang Keluar';
+
+                if (response.success) {
+                    showToast(`✅ ${response.message}`, 'success');
+                    await loadMasterBarang();
+                    checkboxes.forEach(cb => cb.checked = false);
+                    document.getElementById('keluar-inputs').innerHTML = '';
+                    document.getElementById('keluar-pengambil').value = '';
+                    document.getElementById('keluar-keterangan').value = '';
+                    variantCounters = {};
+                } else {
+                    showToast('❌ ' + response.message, 'error');
+                }
+            } catch (error) {
+                btn.disabled = false;
+                btn.innerHTML = '✅ Submit Barang Keluar';
+                showToast('❌ ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // LOAD BARANG KEMBALI
+        // ============================================
+        async function loadBarangKembali() {
+            const container = document.getElementById('kembali-list');
+            container.innerHTML = '<p class="text-gray-500 text-center py-8">⏳ Loading tickets...</p>';
+
+            try {
+                const response = await callApi('getActiveTickets');
+                if (response.success && response.data.length > 0) {
+                    container.innerHTML = response.data.map(ticket => `
+                        <div class="ticket-card">
+
+                            <!-- TUJUAN DI ATAS -->
+                            <div class="bg-white rounded-xl p-4 mb-4 border-l-4 border-indigo-500">
+                                <div class="flex items-start gap-3 mb-3">
+                                    <span class="text-2xl">📍</span>
+                                    <div class="flex-1">
+                                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Tujuan / Keterangan</p>
+                                        <p class="font-bold text-gray-800 text-sm">${ticket.keterangan || '-'}</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-lg">👤</span>
+                                        <div>
+                                            <p class="text-xs text-gray-400">Pengambil</p>
+                                            <p class="font-semibold text-sm text-gray-800">${ticket.pengambil || ticket.pic || 'Unknown'}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-lg">📅</span>
+                                        <div>
+                                            <p class="text-xs text-gray-400">Tanggal</p>
+                                            <p class="font-semibold text-sm text-gray-800">${ticket.tanggal}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- DAFTAR BARANG -->
+                            <div class="mb-4">
+                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">📦 Daftar Barang</p>
+                                <div class="space-y-2">
+                                    ${ticket.items.map((item, idx) => `
+                                        <div class="bg-white rounded-lg p-3 border border-gray-200">
+                                            <div class="flex justify-between items-start mb-2">
+                                                <div class="flex-1">
+                                                    <p class="font-semibold text-sm text-gray-800">${item.namaBarang}</p>
+                                                    <div class="flex flex-wrap gap-2 mt-1">
+                                                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">🏷️ ${item.merk || '-'}</span>
+                                                        <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">📦 Qty: ${item.quantity}</span>
+                                                        ${item.serialNumber !== '-' ? `<span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">🔢 SN: ${item.serialNumber}</span>` : ''}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <input type="number" id="sisa-${ticket.ticket}-${idx}" 
+                                                class="w-full border border-gray-300 rounded p-2 text-sm focus:border-indigo-400 focus:outline-none" 
+                                                placeholder="Jumlah sisa yang dikembalikan (0 = terpakai semua)" 
+                                                min="0" max="${item.quantity}">
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <!-- DETAIL PEMAKAIAN -->
+                            <div class="mb-4">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">📝 Detail Pemakaian *</label>
+                                <textarea id="detail-${ticket.ticket}" 
+                                    class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:border-indigo-400 focus:outline-none" 
+                                    rows="2" 
+                                    placeholder="Contoh: 3pcs terpakai untuk instalasi Project A, 1pcs rusak"></textarea>
+                            </div>
+
+                            <!-- KODE TIKET DI BAWAH -->
+                            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-4 mb-4 text-center">
+                                <p class="text-indigo-200 text-xs font-semibold uppercase tracking-widest mb-1">Kode Tiket</p>
+                                <p class="text-white text-2xl font-bold tracking-widest">🎫 ${ticket.ticket}</p>
+                            </div>
+
+                            <!-- TOMBOL KEMBALIKAN -->
+                            <button onclick="returnTicket('${ticket.ticket}', ${JSON.stringify(ticket.items).replace(/"/g, '&quot;')})" 
+                                class="w-full bg-purple-500 text-white py-3 rounded-xl hover:bg-purple-600 transition font-bold shadow-md">
+                                ✅ Kembalikan Ticket Ini
+                            </button>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-8">Tidak ada ticket aktif.</p>';
+                }
+            } catch (error) {
+                container.innerHTML = `<p class="text-red-500 text-center py-8">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function returnTicket(ticketNumber, items) {
+            const pengembali = document.getElementById('kembali-pengembali').value;
+            if (!pengembali) { showToast('❌ Pilih nama pengembalian terlebih dahulu!', 'error'); return; }
+
+            const detailPemakaian = document.getElementById(`detail-${ticketNumber}`).value;
+            if (!detailPemakaian) { showToast('❌ Isi detail pemakaian!', 'error'); return; }
+
+            const returnItems = [];
+            let hasReturn = false;
+
+            for (let [idx, item] of items.entries()) {
+                const sisaInput = document.getElementById(`sisa-${ticketNumber}-${idx}`);
+                const sisaKembali = parseInt(sisaInput?.value) || 0;
+
+                if (sisaKembali > 0) hasReturn = true;
+                if (sisaKembali > item.quantity) {
+                    showToast(`❌ Jumlah kembali untuk ${item.namaBarang} tidak boleh lebih dari ${item.quantity}!`, 'error');
+                    return;
+                }
+
+                returnItems.push({ namaBarang: item.namaBarang, serialNumber: item.serialNumber, quantity: item.quantity, sisaKembali });
+            }
+
+            if (!hasReturn) {
+                if (!confirm(`⚠️ Tidak ada barang yang dikembalikan.\nSemua barang akan ditandai TERPAKAI.\nLanjutkan?`)) return;
+            }
+
+            const returnCount = returnItems.filter(i => i.sisaKembali > 0).length;
+            const terpakaiCount = returnItems.filter(i => i.sisaKembali === 0).length;
+            let confirmMsg = `Kembalikan ticket ${ticketNumber}?\n`;
+            if (returnCount > 0) confirmMsg += `${returnCount} item dikembalikan\n`;
+            if (terpakaiCount > 0) confirmMsg += `${terpakaiCount} item TERPAKAI`;
+
+            if (!confirm(confirmMsg)) return;
+
+            try {
+                const response = await callApi('saveBarangKembali', { ticketNumber, pengembali, items: returnItems, detailPemakaian });
+                if (response.success) {
+                    showToast('✅ ' + response.message, 'success');
+                    await loadBarangKembali();
+                    await loadMasterBarang();
+                } else {
+                    showToast('❌ ' + response.message, 'error');
+                }
+            } catch (error) {
+                showToast('❌ ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // STOCK DASHBOARD
+        // ============================================
+        async function loadStockDashboard() {
+            try {
+                const response = await callApi('getStockDashboard');
+                if (response.success) {
+                    stockDashboardData = response.data;
+                    renderStockDashboard();
+                }
+            } catch (error) {
+                showToast('❌ Gagal load dashboard: ' + error.message, 'error');
+            }
+        }
+
+        function renderStockDashboard() {
+            if (!stockDashboardData) return;
+
+            document.getElementById('stock-summary').innerHTML = `
+                <div class="bg-green-100 border-l-4 border-green-500 rounded-lg p-4">
+                    <p class="text-sm text-green-700 font-semibold">🟢 Available</p>
+                    <p class="text-2xl font-bold text-green-900">${stockDashboardData.available.length}</p>
+                </div>
+                <div class="bg-yellow-100 border-l-4 border-yellow-500 rounded-lg p-4">
+                    <p class="text-sm text-yellow-700 font-semibold">🟡 Low Stock</p>
+                    <p class="text-2xl font-bold text-yellow-900">${stockDashboardData.lowStock.length}</p>
+                </div>
+                <div class="bg-red-100 border-l-4 border-red-500 rounded-lg p-4">
+                    <p class="text-sm text-red-700 font-semibold">🔴 Out of Stock</p>
+                    <p class="text-2xl font-bold text-red-900">${stockDashboardData.outOfStock.length}</p>
+                </div>
+            `;
+
+            const renderItems = (items, colorClass, borderColor) => items.map(item => `
+                <div class="stock-card bg-white rounded-lg p-4 border-${borderColor}-500">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-semibold">${item.nama}</p>
+                            <p class="text-sm text-gray-500">${item.kategori}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-lg font-bold text-${colorClass}-600">${item.stock} ${item.satuan}</p>
+                            ${item.minStock > 0 ? `<p class="text-xs text-gray-500">Min: ${item.minStock}</p>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('stock-dashboard').innerHTML = `
+                ${stockDashboardData.available.length > 0 ? `<div><h3 class="text-lg font-bold text-green-700 mb-3">🟢 Available Stock</h3><div class="space-y-2">${renderItems(stockDashboardData.available, 'green', 'green')}</div></div>` : ''}
+                ${stockDashboardData.lowStock.length > 0 ? `<div><h3 class="text-lg font-bold text-yellow-700 mb-3">🟡 Low Stock Warning</h3><div class="space-y-2">${renderItems(stockDashboardData.lowStock, 'yellow', 'yellow')}</div></div>` : ''}
+                ${stockDashboardData.outOfStock.length > 0 ? `<div><h3 class="text-lg font-bold text-red-700 mb-3">🔴 Out of Stock</h3><div class="space-y-2">${renderItems(stockDashboardData.outOfStock, 'red', 'red')}</div></div>` : ''}
+            `;
+        }
+
+        function filterStockDashboard() {
+            const search = document.getElementById('search-stock').value.toLowerCase();
+            document.querySelectorAll('.stock-card').forEach(card => {
+                card.style.display = card.textContent.toLowerCase().includes(search) ? 'block' : 'none';
+            });
+        }
+
+        async function checkLowStock() {
+            try {
+                const response = await callApi('getLowStockItems');
+                if (response.success && response.data.length > 0) {
+                    const items = response.data.map(item => `${item.nama} (${item.stock}/${item.minStock} ${item.satuan})`).join(', ');
+                    showToast(`⚠️ Low Stock: ${items}`, 'warning');
+                }
+            } catch (error) {
+                console.log('Low stock check failed:', error.message);
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toast.classList.remove('bg-green-500', 'bg-red-500', 'bg-blue-500', 'bg-yellow-500');
+            if (type === 'error') toast.classList.add('bg-red-500');
+            else if (type === 'info') toast.classList.add('bg-blue-500');
+            else if (type === 'warning') toast.classList.add('bg-yellow-500');
+            else toast.classList.add('bg-green-500');
+            toastMsg.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 5000);
+        }
+    </script>
+</body>
+
+</html>
